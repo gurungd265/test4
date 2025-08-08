@@ -3,10 +3,13 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 # Copy package files first for better caching
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
-# Install dependencies based on the lockfile
+# Install dependencies
 RUN npm install
 
 # Copy all files
