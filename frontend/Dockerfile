@@ -1,13 +1,16 @@
-# Stage 1: Build the application
-FROM node:18 as builder
+# Stage 1: Build with Node 20 (full image)
+FROM node:20 as builder
 
 WORKDIR /app
+
+# Install Python and build tools (needed for some dependencies)
+RUN apt-get update && apt-get install -y python3 make g++
 
 # Copy package files first for better caching
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (force if needed)
+RUN npm install --force
 
 # Copy all files
 COPY . .
@@ -15,19 +18,16 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the application
-FROM node:18-alpine as runner
+# Stage 2: Serve with Node 20 Alpine
+FROM node:20-alpine as runner
 
 WORKDIR /app
 
-# Install serve to run the production build
+# Install serve globally
 RUN npm install -g serve
 
-# Copy the built files from the builder stage
+# Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose the port the app will run on
 EXPOSE 3000
-
-# Start the server
 CMD ["serve", "-s", "dist", "-l", "3000"]
