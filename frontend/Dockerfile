@@ -1,10 +1,7 @@
 # Stage 1: Build the application
-FROM node:18-alpine as builder
+FROM node:18 as builder  # Not using Alpine for builder stage
 
 WORKDIR /app
-
-# Install build dependencies for native modules
-RUN apk add --no-cache python3 make g++
 
 # Copy package files first for better caching
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
@@ -18,7 +15,7 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the application
+# Stage 2: Serve the application (can use Alpine here)
 FROM node:18-alpine as runner
 
 WORKDIR /app
