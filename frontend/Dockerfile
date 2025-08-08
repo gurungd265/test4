@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:18 as builder  # Not using Alpine for builder stage
+FROM node:18 as builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the application (can use Alpine here)
+# Stage 2: Serve the application
 FROM node:18-alpine as runner
 
 WORKDIR /app
