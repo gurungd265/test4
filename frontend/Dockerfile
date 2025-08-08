@@ -1,16 +1,33 @@
-# Step 1: Build React app using Node
-FROM node:18 AS builder
+# Stage 1: Build the application
+FROM node:18-alpine as builder
+
 WORKDIR /app
 
-COPY package*.json ./
+# Copy package files first for better caching
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+
+# Install dependencies based on the lockfile
 RUN npm install
 
+# Copy all files
 COPY . .
+
+# Build the application
 RUN npm run build
 
-# Step 2: Serve with Nginx
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Stage 2: Serve the application
+FROM node:18-alpine as runner
 
-# Optional: remove default nginx conf and replace it (especially for React Router)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
+
+# Install serve to run the production build
+RUN npm install -g serve
+
+# Copy the built files from the builder stage
+COPY --from=builder /app/dist ./dist
+
+# Expose the port the app will run on
+EXPOSE 3000
+
+# Start the server
+CMD ["serve", "-s", "dist", "-l", "3000"]
